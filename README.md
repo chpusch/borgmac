@@ -4,6 +4,8 @@ A native macOS client for [Borg](https://www.borgbackup.org/) backup repositorie
 
 BorgMac does not reimplement the Borg protocol. It drives the `borg` command line tool as a subprocess, so anything Borg can do with a repository, BorgMac can too, and your repositories stay fully usable from the terminal or any other client.
 
+![BorgMac main window listing the archives of a BorgBase repository](docs/screenshots/main-window.png)
+
 ## Install
 
 ### Homebrew (recommended)
@@ -64,6 +66,15 @@ brew install borgbackup-fuse    # same, plus FUSE support for mounting archives
 - Check, prune, compact and break-lock as server-side jobs with live logs. Browse remote archives. Toggle append-only mode. Configure stale-backup webhook alerts and test them.
 - Register a new repository (BorgMac generates the key, registers it with the daemon and adopts the repo) or import an existing one.
 - Automation panel: create and manage server-side maintenance schedules (periodic check and compact) across all your BorgBox servers.
+
+## Screenshots
+
+| | |
+| --- | --- |
+| ![Archive browser with full-tree search](docs/screenshots/archive-browser.png) | ![Schedules sheet](docs/screenshots/schedules.png) |
+| Browse any archive like a folder, search the whole tree, Quick Look and restore. | Any number of launchd schedules per repository, with retention and "run now". |
+| ![BorgBase panel](docs/screenshots/borgbase-panel.png) | ![Statistics panel](docs/screenshots/statistics.png) |
+| Every BorgBase repository with usage, region, encryption and last activity. Import, edit or create in place. | Usage by provider and by repository, plus the state of every scheduled backup. |
 
 ## How it works
 
