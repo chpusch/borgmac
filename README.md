@@ -46,7 +46,7 @@ brew install borgbackup-fuse    # same, plus FUSE support for mounting archives
 - Archive browser with full-tree search, Quick Look previews, and restore of single files or whole folders.
 - File history: see every version of a path across all archives.
 - Treemap of what takes up space inside an archive.
-- Prune, check, compact, delete, break-lock, and passphrase change from the UI.
+- Prune (with compact), delete, break-lock, mount, and passphrase change from the UI. Repository check runs server-side on BorgBox; there is no `borg check` for local, SSH or BorgBase repositories yet.
 
 **Menu bar and widget**
 
