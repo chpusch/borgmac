@@ -22,8 +22,8 @@ GH_REPO="prietus/borgmac"
 # Marketing site (Astro). Rebuilt on publish so the version badge and the
 # download link (which points at the GitHub release) move forward.
 SITE_DIR="/Users/carlos/borgmac-site"
-PUBLISH_HOST="teraflops@192.168.1.37"
-PUBLISH_PATH="/home/teraflops/borgmac/site"
+PUBLISH_HOST="teraflops@mail.priet.us"
+PUBLISH_PATH="/srv/sites/borgmac/site"
 # node@18 is keg-only in homebrew (not linked into /opt/homebrew/bin).
 NODE_BIN="/opt/homebrew/opt/node@18/bin"
 TAP_DIR="${TAP_DIR:-$HOME/homebrew-tap}"
