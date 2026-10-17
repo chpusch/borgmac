@@ -52,14 +52,13 @@ struct BorgBaseEditRepoSheet: View {
     }
 
     enum AccessLevel: String, CaseIterable, Identifiable {
-        case none, full, appendOnly, rsync
+        case none, full, appendOnly
         var id: String { rawValue }
         var label: String {
             switch self {
             case .none:       return "None"
             case .full:       return "Full"
             case .appendOnly: return "Append"
-            case .rsync:      return "Rsync"
             }
         }
         var tint: Color {
@@ -67,7 +66,6 @@ struct BorgBaseEditRepoSheet: View {
             case .none:       return .secondary
             case .full:       return .accentColor
             case .appendOnly: return .green
-            case .rsync:      return .orange
             }
         }
     }
@@ -159,7 +157,7 @@ struct BorgBaseEditRepoSheet: View {
                             .disabled(saving)
                         }
 
-                        Text("Full: read & write. Append: backups yes, delete/modify no. Rsync: legacy rsync-only access.")
+                        Text("Full: read & write. Append: backups yes, delete/modify no.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -313,7 +311,6 @@ struct BorgBaseEditRepoSheet: View {
         var map: [String: AccessLevel] = [:]
         (repo.fullAccessKeys ?? []).forEach     { map[$0] = .full }
         (repo.appendOnlyKeys ?? []).forEach     { map[$0] = .appendOnly }
-        (repo.rsyncKeys ?? []).forEach          { map[$0] = .rsync }
         accessByKey = map
     }
 
@@ -376,21 +373,16 @@ struct BorgBaseEditRepoSheet: View {
         // rejects with "Can't use a SSH key for different roles."
         let desiredFull = Set(accessByKey.compactMap { $0.value == .full ? $0.key : nil })
         let desiredAppend = Set(accessByKey.compactMap { $0.value == .appendOnly ? $0.key : nil })
-        let desiredRsync = Set(accessByKey.compactMap { $0.value == .rsync ? $0.key : nil })
         let currentFull = Set(repo.fullAccessKeys ?? [])
         let currentAppend = Set(repo.appendOnlyKeys ?? [])
-        let currentRsync = Set(repo.rsyncKeys ?? [])
 
         let aclChanged = desiredFull != currentFull
             || desiredAppend != currentAppend
-            || desiredRsync != currentRsync
         var newFull:   [String]? = nil
         var newAppend: [String]? = nil
-        var newRsync:  [String]? = nil
         if aclChanged {
             newFull   = Array(desiredFull)
             newAppend = Array(desiredAppend)
-            newRsync  = Array(desiredRsync)
         }
 
         do {
@@ -406,8 +398,7 @@ struct BorgBaseEditRepoSheet: View {
                 compactionHour: newCompactHour,
                 compactionHourTimezone: newCompactTZ,
                 fullAccessKeys: newFull,
-                appendOnlyKeys: newAppend,
-                rsyncKeys: newRsync
+                appendOnlyKeys: newAppend
             )
             onSaved()
             dismiss()

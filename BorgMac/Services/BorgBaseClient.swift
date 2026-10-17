@@ -42,14 +42,13 @@ struct BorgBaseRepo: Decodable, Identifiable, Hashable {
     let compactionHourTimezone: String?
     let fullAccessKeys: [String]?
     let appendOnlyKeys: [String]?
-    let rsyncKeys: [String]?
 
     enum CodingKeys: String, CodingKey {
         case id, name, repoPath, currentUsage, quota, quotaEnabled
         case encryption, lastModified, createdAt, alertDays, server
         case compactionEnabled, compactionInterval, compactionIntervalUnit
         case compactionHour, compactionHourTimezone
-        case fullAccessKeys, appendOnlyKeys, rsyncKeys
+        case fullAccessKeys, appendOnlyKeys
     }
 
     init(from decoder: Decoder) throws {
@@ -71,7 +70,6 @@ struct BorgBaseRepo: Decodable, Identifiable, Hashable {
         self.compactionHourTimezone = try? c.decode(String.self, forKey: .compactionHourTimezone)
         self.fullAccessKeys = try? c.decode([String].self, forKey: .fullAccessKeys)
         self.appendOnlyKeys = try? c.decode([String].self, forKey: .appendOnlyKeys)
-        self.rsyncKeys = try? c.decode([String].self, forKey: .rsyncKeys)
 
         if let serverContainer = try? c.nestedContainer(
             keyedBy: ServerKeys.self, forKey: .server
@@ -195,7 +193,6 @@ actor BorgBaseClient {
             compactionHourTimezone
             fullAccessKeys
             appendOnlyKeys
-            rsyncKeys
             server { region }
           }
         }
@@ -301,8 +298,7 @@ actor BorgBaseClient {
         compactionHour: Int? = nil,
         compactionHourTimezone: String? = nil,
         fullAccessKeys: [String]? = nil,
-        appendOnlyKeys: [String]? = nil,
-        rsyncKeys: [String]? = nil
+        appendOnlyKeys: [String]? = nil
     ) async throws {
         var argDecls: [String] = ["$id: String!"]
         var argUses: [String] = ["id: $id"]
@@ -326,7 +322,6 @@ actor BorgBaseClient {
         addVar("compactionHourTimezone", compactionHourTimezone, gqlType: "String")
         addVar("fullAccessKeys",         fullAccessKeys,         gqlType: "[String]")
         addVar("appendOnlyKeys",         appendOnlyKeys,         gqlType: "[String]")
-        addVar("rsyncKeys",              rsyncKeys,              gqlType: "[String]")
 
         // Nothing to change — save a round trip.
         guard argDecls.count > 1 else { return }
