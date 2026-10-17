@@ -19,13 +19,9 @@ NOTARIZE="${NOTARIZE:-1}"
 PUBLISH="${PUBLISH:-1}"
 
 GH_REPO="prietus/borgmac"
-# Marketing site (Astro). Rebuilt on publish so the version badge and the
-# download link (which points at the GitHub release) move forward.
+# Marketing site (Astro). Its deploy.sh rebuilds it for the released
+# version (download link points at the GitHub release) and rsyncs it.
 SITE_DIR="/Users/carlos/borgmac-site"
-PUBLISH_HOST="teraflops@mail.priet.us"
-PUBLISH_PATH="/srv/sites/borgmac/site"
-# node@18 is keg-only in homebrew (not linked into /opt/homebrew/bin).
-NODE_BIN="/opt/homebrew/opt/node@18/bin"
 TAP_DIR="${TAP_DIR:-$HOME/homebrew-tap}"
 CASK_FILE="Casks/borgmac.rb"
 
@@ -179,16 +175,13 @@ echo "==> Bumping cask to ${VERSION} in ${TAP_DIR}..."
     git push -q
 )
 
-echo "==> Rebuilding marketing site for ${VERSION} and syncing to ${PUBLISH_HOST}..."
-# A failure here (LAN host asleep, node missing) must not undo a release
+echo "==> Deploying marketing site for ${VERSION}..."
+# A failure here (host unreachable, node missing) must not undo a release
 # that is already tagged, published and in the cask — warn and move on.
-if (cd "$SITE_DIR" && PATH="$NODE_BIN:$PATH" PUBLIC_APP_VERSION="$VERSION" npm run build >/dev/null 2>&1) \
-   && rsync -az --delete --exclude 'BorgMac-*.zip' -e 'ssh -o ConnectTimeout=10 -o BatchMode=yes' \
-        "$SITE_DIR/dist/" "${PUBLISH_HOST}:${PUBLISH_PATH}/" >/dev/null 2>&1; then
+if "$SITE_DIR/deploy.sh" "$VERSION" >/dev/null 2>&1; then
     echo "    Site:    https://borgmac.priet.us/ now shows ${VERSION}"
 else
-    echo "WARNING: site rebuild/sync failed. Run it by hand when the host is reachable:"
-    echo "    cd $SITE_DIR && PATH=$NODE_BIN:\$PATH PUBLIC_APP_VERSION=$VERSION npm run build && rsync -az --delete --exclude 'BorgMac-*.zip' dist/ ${PUBLISH_HOST}:${PUBLISH_PATH}/"
+    echo "WARNING: site deploy failed. Run it by hand: $SITE_DIR/deploy.sh $VERSION"
 fi
 
 echo
