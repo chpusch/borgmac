@@ -16,7 +16,7 @@ This installs `BorgMac.app` into `/Applications`. Upgrade with `brew upgrade --c
 
 ### Manual
 
-Download `BorgMac-<version>.zip` from the [Releases](https://github.com/prietus/borg/releases) page, unzip, and drag `BorgMac.app` to `/Applications`. Builds are signed with a Developer ID and notarized by Apple.
+Download `BorgMac-<version>.zip` from the [Releases](https://github.com/prietus/borgmac/releases) page, unzip, and drag `BorgMac.app` to `/Applications`. Builds are signed with a Developer ID and notarized by Apple.
 
 Either way you also need the `borg` binary, which BorgMac looks for in `/opt/homebrew/bin` and `/usr/local/bin`. The cask does not install it for you because the two Homebrew formulae that provide it conflict with each other, so pick one:
 
