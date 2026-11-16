@@ -28,6 +28,12 @@ final class CatchUpScheduler {
     /// Grace after a slot passes during which launchd itself is expected
     /// to be starting the job.
     static let slotGrace: TimeInterval = 2 * 60
+    /// After a kickstart, treat the repository as busy for this long even
+    /// if the runner hasn't written `running: true` to its status file yet.
+    static let kickSettle: TimeInterval = 60
+    /// How soon to check again when an overdue schedule had to wait for
+    /// another backup of the same repository.
+    static let busyRecheck: TimeInterval = 5 * 60
 
     private var lastKick: [UUID: Date] = [:]
     private var pending: DispatchWorkItem?
@@ -65,7 +71,20 @@ final class CatchUpScheduler {
 
     func runOverdueSchedules(reason: String, now: Date = Date()) {
         WiFiMonitor.shared.refresh()
+        var deferred = false
         for repo in Self.loadRepositories() {
+            // One backup per repository at a time: borg holds an exclusive
+            // repository lock, so a second run would only wait on it (or
+            // fail once `--lock-wait` runs out). Skip the repo while any of
+            // its schedules is running or was just kicked, and start at
+            // most one overdue schedule per check. The rest are picked up
+            // by the follow-up check below.
+            var repoBusy = repo.schedules.contains { schedule in
+                if BackupStatusFile.read(for: schedule.id)?.running == true { return true }
+                if let last = lastKick[schedule.id], now.timeIntervalSince(last) < Self.kickSettle { return true }
+                return false
+            }
+
             for schedule in repo.schedules {
                 guard ScheduleManager.isInstalled(repoId: repo.id, scheduleId: schedule.id) else { continue }
                 let status = BackupStatusFile.read(for: schedule.id)
@@ -74,14 +93,26 @@ final class CatchUpScheduler {
                 // Don't spawn a runner that would only skip.
                 if WiFiNetwork.skipReason(for: schedule) != nil { continue }
 
+                if repoBusy {
+                    deferred = true
+                    continue
+                }
+
                 do {
                     try ScheduleManager.kickstart(repoId: repo.id, scheduleId: schedule.id)
                     lastKick[schedule.id] = now
+                    repoBusy = true
                     NSLog("%@", "BorgMac: catch-up (\(reason)) started \(repo.name) / \(schedule.displayName)")
                 } catch {
                     NSLog("%@", "BorgMac: catch-up kickstart failed for \(schedule.id): \(error.localizedDescription)")
                 }
             }
+        }
+        // Another overdue schedule is waiting for its repository to be
+        // free: look again later instead of waiting for the next wake or
+        // network change.
+        if deferred {
+            scheduleCheck(after: Self.busyRecheck, reason: "repository busy")
         }
     }
 
